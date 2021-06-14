@@ -40,6 +40,9 @@ void setup()
 
 void loop()                     // run over and over again
 {
+  int val=Serial.read();
+  if (val=='t')
+  Serial.println("received!");
   if(tryTime>3){
     alarm();
   }
@@ -77,6 +80,7 @@ int getFingerprintIDez() {
   // found a match!
   Serial.print("Found ID #"); Serial.print(finger.fingerID); 
   Serial.print(" with confidence of "); Serial.println(finger.confidence);
+  tryTime=0;
   return finger.fingerID; 
 }
 void alarm(){
