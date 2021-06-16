@@ -21,11 +21,12 @@ void setup()
 {
   tryTime=0;
   pinMode(6,OUTPUT);
+  pinMode(7,OUTPUT);
   pinMode(4,INPUT);
   Serial.begin(9600);
   while (!Serial);  // For Yun/Leo/Micro/Zero/...
   delay(100);
-  Serial.println("\n\nAdafruit Fingerprint sensor enrollment");
+//  Serial.println("\n\nAdafruit Fingerprint sensor enrollment");
 
   // set the data rate for the sensor serial port
   finger.begin(57600);
@@ -47,7 +48,6 @@ void loop()                     // run over and over again
     alarm();
   }
   if(digitalRead(4)==HIGH)
-
       {
         getFingerprintIDez();
         delay(500);
@@ -80,6 +80,12 @@ int getFingerprintIDez() {
   // found a match!
   Serial.print("Found ID #"); Serial.print(finger.fingerID); 
   Serial.print(" with confidence of "); Serial.println(finger.confidence);
+  Serial.println(analogRead(0));
+  if(analogRead(0)>=300){
+    digitalWrite(7,HIGH);
+      delay(3000); 
+      digitalWrite(7,LOW);
+   }
   tryTime=0;
   return finger.fingerID; 
 }
