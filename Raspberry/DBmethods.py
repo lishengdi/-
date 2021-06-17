@@ -1,6 +1,7 @@
 import sqlite3
 import textTovioce
 from playsound import playsound
+import time
 
 def init():
     conn = sqlite3.connect('Record.db')
@@ -13,7 +14,9 @@ def init():
     conn.commit()
     conn.close()
 
-def insert(id:str,time:str,way:str):
+def insert(id:str,way:str):
+
+    time=CreateTime()
     conn = sqlite3.connect('Record.db')
     c = conn.cursor()
     c.execute("INSERT INTO doorLog (ID,TIME,WAY) \
@@ -39,11 +42,17 @@ def select():
     data_base.close()
     return people
 
-init()
-insert('李晟迪', '6月14日14时35分', '蓝牙')
-insert('黄陈雷', '6月14日14时42分', '指纹')
-insert('叶轶楠', '6月14日14时43分', '人脸识别')
-insert('尹珩宇', '6月14日14时52分', '指纹')
-tmp = select()
-textTovioce.t2a(tmp)
-playsound('result.mp3')
+
+def CreateTime():
+    Time=time.strftime("%m月%d日 %H时%M分", time.localtime())
+    return Time
+
+# init()
+# insert('李晟迪', '6月14日14时35分', '蓝牙')
+# insert('黄陈雷', '6月14日14时42分', '指纹')
+# insert('叶轶楠', '6月14日14时43分', '人脸识别')
+# insert('尹珩宇', '6月14日14时52分', '指纹')
+# tmp = select()
+# textTovioce.t2a(tmp)
+# playsound('result.mp3')
+
