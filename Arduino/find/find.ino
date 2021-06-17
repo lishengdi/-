@@ -1,5 +1,7 @@
 #include <Adafruit_Fingerprint.h>
-
+#include<Servo.h>
+int pos=0;
+Servo myLock;
 // On Leonardo/Micro or others with hardware serial, use those! #0 is green wire, #1 is white
 // uncomment this line:
 // #define mySerial Serial1
@@ -37,14 +39,23 @@ void setup()
     Serial.println("Did not find fingerprint sensor :(");
     while (1) { delay(1); }
   }
+  myLock.attach(5);  //舵机pwm接口
+
+  for (pos=90;pos>=0;--pos){  //预先上锁
+    myLock.write(pos);
+    delay(5);
+  }
+
+  
 }
 
 void loop()                     // run over and over again
 {
   int val=Serial.read();
   if (val=='t'){
-    lightOn();
-    Serial.println("Hi");
+    openDoor();
+  }else if(val=='f'){
+    closeDoor();
   }
  
   if(tryTime>3){
@@ -83,10 +94,7 @@ int getFingerprintIDez() {
   // found a match!
   Serial.print("Found ID #"); Serial.print(finger.fingerID); 
   Serial.print(" with confidence of "); Serial.println(finger.confidence);
-  Serial.println(analogRead(0));
-  if(analogRead(0)>=300){
-    lightOn();
-   }
+  openDoor();
   tryTime=0;
   return finger.fingerID; 
 }
@@ -110,6 +118,28 @@ void alarm(){
     noTone(6);
 }
 
+void openDoor(){
+  for(pos==0;pos<=90;++pos){
+     myLock.write(pos);
+     delay(5);
+  }
+  if(analogRead(0)>=300){
+    lightOn();
+    delay(1000);
+   }else{
+     delay(4000);
+    }
+  for (pos=90;pos>=0;--pos){    //自动关门
+    myLock.write(pos);
+    delay(5);
+  }   
+}
+void closeDoor(){
+  for (pos=90;pos>=0;--pos){
+    myLock.write(pos);
+    delay(5);
+  }
+}
 
 void lightOn(){
   digitalWrite(7,HIGH);
