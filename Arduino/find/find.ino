@@ -16,7 +16,7 @@ Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 uint8_t id;
 uint8_t tryTime;
 
-
+void lightOn();
 void setup()  
 {
   tryTime=0;
@@ -42,8 +42,11 @@ void setup()
 void loop()                     // run over and over again
 {
   int val=Serial.read();
-  if (val=='t')
-  Serial.println("received!");
+  if (val=='t'){
+    lightOn();
+    Serial.println("Hi");
+  }
+ 
   if(tryTime>3){
     alarm();
   }
@@ -82,13 +85,14 @@ int getFingerprintIDez() {
   Serial.print(" with confidence of "); Serial.println(finger.confidence);
   Serial.println(analogRead(0));
   if(analogRead(0)>=300){
-    digitalWrite(7,HIGH);
-      delay(3000); 
-      digitalWrite(7,LOW);
+    lightOn();
    }
   tryTime=0;
   return finger.fingerID; 
 }
+
+
+
 void alarm(){
   Serial.println("startAlarm");
   tryTime=0;
@@ -104,4 +108,11 @@ void alarm(){
     delay(10);
     }
     noTone(6);
+}
+
+
+void lightOn(){
+  digitalWrite(7,HIGH);
+      delay(3000); 
+      digitalWrite(7,LOW);
 }
