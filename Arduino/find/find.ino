@@ -10,8 +10,9 @@ Servo myLock;
 // pin #2 is IN from sensor (GREEN wire)
 // pin #3 is OUT from arduino  (WHITE wire)
 // comment these two lines if using hardware serial
-SoftwareSerial mySerial(2, 3); // RX,TX(UNO)
-//SoftwareSerial mySerial(10, 11); // RX,TX(MEGA2560)
+SoftwareSerial mySerial(2, 3); // RX,TX(UNO)  //指纹模拟串口
+SoftwareSerial postMan(10, 11); //向树莓派传递信息
+
 
 Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 
@@ -22,9 +23,11 @@ void lightOn();
 void setup()  
 {
   tryTime=0;
+  pinMode(13,INPUT);   //监听树莓派开门请求
   pinMode(6,OUTPUT);
   pinMode(7,OUTPUT);
   pinMode(4,INPUT);
+  pinMode(12,OUTPUT); //向树莓派发出中断触发信号
   Serial.begin(9600);
   while (!Serial);  // For Yun/Leo/Micro/Zero/...
   delay(100);
@@ -32,7 +35,8 @@ void setup()
 
   // set the data rate for the sensor serial port
   finger.begin(57600);
-  
+  postMan.begin(4800);
+  mySerial.println("hello");
   if (finger.verifyPassword()) {
     Serial.println("Found fingerprint sensor!");
   } else {
@@ -45,17 +49,26 @@ void setup()
     myLock.write(pos);
     delay(5);
   }
-
+  digitalWrite(12,LOW);
   
 }
 
 void loop()                     // run over and over again
 {
-  int val=Serial.read();
+  int val=Serial.read();   //蓝牙开门
   if (val=='t'){
+    digitalWrite(12,HIGH);
+    delay(100);
+    digitalWrite(12,LOW);
+    postMan.println("BLE");
+    
     openDoor();
   }else if(val=='f'){
     closeDoor();
+  }
+  
+  if(digitalRead(13)==HIGH){   //树莓派人脸识别开门
+    openDoor();
   }
  
   if(tryTime>3){
@@ -67,7 +80,7 @@ void loop()                     // run over and over again
         delay(500);
       }
 
-  delay(800);            //don't ned to run this at full speed.
+  delay(300);           
 }
 
 
@@ -94,6 +107,12 @@ int getFingerprintIDez() {
   // found a match!
   Serial.print("Found ID #"); Serial.print(finger.fingerID); 
   Serial.print(" with confidence of "); Serial.println(finger.confidence);
+  
+   digitalWrite(12,HIGH);   //向树莓派报告身份
+    delay(100);
+    digitalWrite(12,LOW);
+    postMan.println(finger.fingerID);
+    
   openDoor();
   tryTime=0;
   return finger.fingerID; 
@@ -102,7 +121,12 @@ int getFingerprintIDez() {
 
 
 void alarm(){
-  Serial.println("startAlarm");
+//  Serial.println("startAlarm");
+  digitalWrite(12,HIGH);   //向树莓派报告身份
+    delay(100);
+    digitalWrite(12,LOW);
+    postMan.println("Alarm");
+    
   tryTime=0;
       for(int i=200;i<=800;i++)                    //用循环的方式将频率从200HZ 增加到800HZ
     {
