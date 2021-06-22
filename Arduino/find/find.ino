@@ -11,9 +11,12 @@ Servo myLock;
 // pin #3 is OUT from arduino  (WHITE wire)
 // comment these two lines if using hardware serial
 SoftwareSerial mySerial(2, 3); // RX,TX(UNO)  //指纹模拟串口
-SoftwareSerial postMan(10, 11); //向树莓派传递信息
-
-
+//SoftwareSerial postMan(10, 11); //向树莓派传递信息
+#define Echo 12
+#define Trig 13
+float distance;
+float tmp;
+float dis;
 Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 
 uint8_t id;
@@ -22,12 +25,13 @@ uint8_t tryTime;
 void lightOn();
 void setup()  
 {
+  pinMode(Trig, OUTPUT);
+  pinMode(Echo, INPUT);  
   tryTime=0;
-  pinMode(13,INPUT);   //监听树莓派开门请求
   pinMode(6,OUTPUT);
   pinMode(7,OUTPUT);
   pinMode(4,INPUT);
-  pinMode(12,OUTPUT); //向树莓派发出中断触发信号
+  pinMode(8,INPUT); //向树莓派发出中断触发信号
   Serial.begin(9600);
   while (!Serial);  // For Yun/Leo/Micro/Zero/...
   delay(100);
@@ -35,12 +39,12 @@ void setup()
 
   // set the data rate for the sensor serial port
   finger.begin(57600);
-  postMan.begin(4800);
-  mySerial.println("hello");
+//  postMan.begin(4800);
+//  mySerial.println("hello");
   if (finger.verifyPassword()) {
-    Serial.println("Found fingerprint sensor!");
+//    Serial.println("Found fingerprint sensor!");
   } else {
-    Serial.println("Did not find fingerprint sensor :(");
+//    Serial.println("Did not find fingerprint sensor :(");
     while (1) { delay(1); }
   }
   myLock.attach(5);  //舵机pwm接口
@@ -53,23 +57,29 @@ void setup()
   
 }
 
-void loop()                     // run over and over again
+void loop()                      
 {
+  dis=Distance();
+//  Serial.println(dis);
+  if(dis<=52.0){
+    Serial.println("face");
+  }
   int val=Serial.read();   //蓝牙开门
   if (val=='t'){
-    digitalWrite(12,HIGH);
-    delay(100);
-    digitalWrite(12,LOW);
-    postMan.println("BLE");
-    
+//    digitalWrite(12,HIGH);
+//    delay(100);
+//    digitalWrite(12,LOW);
+    Serial.println("BLE");
     openDoor();
   }else if(val=='f'){
     closeDoor();
-  }
-  
-  if(digitalRead(13)==HIGH){   //树莓派人脸识别开门
+  }else if(val=='o'){
     openDoor();
   }
+  
+//  if(digitalRead(13)==HIGH){   //树莓派人脸识别开门
+//    openDoor();
+//  }
  
   if(tryTime>3){
     alarm();
@@ -79,7 +89,10 @@ void loop()                     // run over and over again
         getFingerprintIDez();
         delay(500);
       }
-
+  if(digitalRead(8)==HIGH)
+  {
+    Serial.println("Sound");
+  }
   delay(300);           
 }
 
@@ -101,18 +114,24 @@ int getFingerprintIDez() {
   p = finger.fingerFastSearch();
   if (p != FINGERPRINT_OK){
     tryTime++;
+//    digitalWrite(12,HIGH);   //向树莓派报告身份
+//    delay(80);
+//    postMan.println("x");
+//    digitalWrite(12,LOW);
+    Serial.println("nullFinger");
     return -1;
   }
   
   // found a match!
-  Serial.print("Found ID #"); Serial.print(finger.fingerID); 
-  Serial.print(" with confidence of "); Serial.println(finger.confidence);
+//  Serial.print("Found ID #"); Serial.print(finger.fingerID); 
+//  Serial.print(" with confidence of "); Serial.println(finger.confidence);
   
-   digitalWrite(12,HIGH);   //向树莓派报告身份
-    delay(100);
-    digitalWrite(12,LOW);
-    postMan.println(finger.fingerID);
-    
+//   digitalWrite(12,HIGH);   //向树莓派报告身份
+//    delay(80);
+//    postMan.println(finger.fingerID);
+//    digitalWrite(12,LOW);
+
+Serial.println(finger.fingerID);    
   openDoor();
   tryTime=0;
   return finger.fingerID; 
@@ -121,11 +140,12 @@ int getFingerprintIDez() {
 
 
 void alarm(){
-//  Serial.println("startAlarm");
-  digitalWrite(12,HIGH);   //向树莓派报告身份
-    delay(100);
-    digitalWrite(12,LOW);
-    postMan.println("Alarm");
+  Serial.println("startAlarm");
+//  digitalWrite(12,HIGH);   //向树莓派报告身份
+//    delay(80);
+//    postMan.println("Alarm");
+//    digitalWrite(12,LOW);
+//    
     
   tryTime=0;
       for(int i=200;i<=800;i++)                    //用循环的方式将频率从200HZ 增加到800HZ
@@ -169,4 +189,16 @@ void lightOn(){
   digitalWrite(7,HIGH);
       delay(3000); 
       digitalWrite(7,LOW);
+}
+
+float Distance(){
+  digitalWrite(Trig, LOW); //给Trig发送一个低电平
+  delayMicroseconds(2);    //等待 2微妙
+  //boost 
+  digitalWrite(Trig,HIGH); //发送一个高电平 至少10us的高电平信号来启动模块
+  delayMicroseconds(10);    
+  digitalWrite(Trig, LOW); 
+  tmp = float(pulseIn(Echo, HIGH)); //probe the width of chosed signal counter start at high and finish at low
+  distance = (tmp * 17 )/1000; //距离：cm 时间：us 声速 340m/s
+  return distance;
 }

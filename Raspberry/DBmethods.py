@@ -1,8 +1,8 @@
 import sqlite3
-import textTovioce
+import textTovoice
 from playsound import playsound
 import time
-
+import pygame
 def init():
     conn = sqlite3.connect('Record.db')
     c = conn.cursor()
@@ -44,15 +44,21 @@ def select():
 
 
 def CreateTime():
-    Time=time.strftime("%m月%d日 %H时%M分", time.localtime())
+    Time=time.strftime("%m月%d日 %H时%M分%S秒", time.localtime())
     return Time
 
 # init()
-# insert('李晟迪', '6月14日14时35分', '蓝牙')
-# insert('黄陈雷', '6月14日14时42分', '指纹')
-# insert('叶轶楠', '6月14日14时43分', '人脸识别')
-# insert('尹珩宇', '6月14日14时52分', '指纹')
+# insert('李晟迪','蓝牙')
+# #insert('黄陈雷','指纹')
+# #insert('叶轶楠','人脸识别')
+# #insert('尹珩宇','指纹')
 # tmp = select()
-# textTovioce.t2a(tmp)
-# playsound('result.mp3')
+# textTovoice.t2a(tmp)
+# pygame.mixer.init()
+# pygame.mixer.music.load('result.mp3')
+# pygame.mixer.music.play()
+# #playsound('result.mp3')
+
+
+
 
