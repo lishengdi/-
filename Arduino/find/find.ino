@@ -31,7 +31,7 @@ void setup()
   pinMode(6,OUTPUT);
   pinMode(7,OUTPUT);
   pinMode(4,INPUT);
-  pinMode(8,INPUT); //向树莓派发出中断触发信号
+  pinMode(8,INPUT); 
   Serial.begin(9600);
   while (!Serial);  // For Yun/Leo/Micro/Zero/...
   delay(100);
@@ -66,9 +66,7 @@ void loop()
   }
   int val=Serial.read();   //蓝牙开门
   if (val=='t'){
-//    digitalWrite(12,HIGH);
-//    delay(100);
-//    digitalWrite(12,LOW);
+
     Serial.println("BLE");
     openDoor();
   }else if(val=='f'){
@@ -77,9 +75,6 @@ void loop()
     openDoor();
   }
   
-//  if(digitalRead(13)==HIGH){   //树莓派人脸识别开门
-//    openDoor();
-//  }
  
   if(tryTime>3){
     alarm();
@@ -97,14 +92,12 @@ void loop()
 }
 
 
-// returns -1 if failed, otherwise returns ID #
 int getFingerprintIDez() {
   uint8_t p = finger.getImage();
   if (p != FINGERPRINT_OK) {
      return -1;
   }
   
- 
 
   p = finger.image2Tz();
   if (p != FINGERPRINT_OK) {
@@ -114,22 +107,10 @@ int getFingerprintIDez() {
   p = finger.fingerFastSearch();
   if (p != FINGERPRINT_OK){
     tryTime++;
-//    digitalWrite(12,HIGH);   //向树莓派报告身份
-//    delay(80);
-//    postMan.println("x");
-//    digitalWrite(12,LOW);
     Serial.println("nullFinger");
     return -1;
   }
   
-  // found a match!
-//  Serial.print("Found ID #"); Serial.print(finger.fingerID); 
-//  Serial.print(" with confidence of "); Serial.println(finger.confidence);
-  
-//   digitalWrite(12,HIGH);   //向树莓派报告身份
-//    delay(80);
-//    postMan.println(finger.fingerID);
-//    digitalWrite(12,LOW);
 
 Serial.println(finger.fingerID);    
   openDoor();
@@ -140,13 +121,7 @@ Serial.println(finger.fingerID);
 
 
 void alarm(){
-  Serial.println("startAlarm");
-//  digitalWrite(12,HIGH);   //向树莓派报告身份
-//    delay(80);
-//    postMan.println("Alarm");
-//    digitalWrite(12,LOW);
-//    
-    
+  Serial.println("startAlarm");    
   tryTime=0;
       for(int i=200;i<=800;i++)                    //用循环的方式将频率从200HZ 增加到800HZ
     {
